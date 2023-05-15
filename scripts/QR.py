@@ -10,7 +10,7 @@ import cv2, PIL, os
 from cv2 import aruco
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-rom std_msgs.msg import Float64MultiArray
+from std_msgs.msg import Float64MultiArray
 from scipy.spatial.transform import Rotation as R
 
 
