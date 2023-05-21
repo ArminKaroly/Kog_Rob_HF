@@ -60,6 +60,44 @@ def CalcCommanVelocity(odom_msg):
     #TODO: atgondolni joe ez, obstacle avoidance, forgas speedre is egy maximum lehet kell
         pub.publish(vel)
 
+
+# robot state machine
+# possible states
+STATE_IDLE  = "idle"
+STATE_WORKING = "working" # taking out order
+STATE_DELVERED = "order delivered"
+STATE_RETURNING = "returning" # returning home to pick up order
+
+# possible events
+EVENT_TAKEORDER = "take order"
+EVENT_RETURN_HOME = "cancel/finish order, return home"
+EVENT_DELIVER = "give order to custumer"
+
+
+class FSM:
+    def __init__(self):
+        self.state = STATE_IDLE
+    def on_event(self, event):
+        if self.state == STATE_IDLE:
+            if event == EVENT_TAKEORDER:
+                self.state = STATE_WORKING
+                print ("Taking order nr " + 3 + "to table " + 4)
+        if self.state == STATE_WORKING:
+            if event == EVENT_TAKEORDER:
+                print ("Already working, taking order nr " + 3 + "to table " + 4)
+            if event == EVENT_DELIVER:
+                print ("Order deliverd")
+                self.state = STATE_DELVERED
+            if event == EVENT_RETURN_HOME:
+                print ("Order canceled, return home")
+                self.state = STATE_RETURNING
+        if self.state == STATE_DELVERED:
+            if event == EVENT_RETURN_HOME:
+                print ("Delivered order nr " + 3 + "to table " + 4)
+                self.state = STATE_RETURNING
+        if self.state == STATE_RETURNING:    
+                print ("Order nr " + 3 + "finished")
+
 rospy.init_node('motion_planner')
 odom_topic= "/Robot_act_pos_pub"
 destination_topic= "/destination"
