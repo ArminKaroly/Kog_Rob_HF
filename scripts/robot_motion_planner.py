@@ -51,7 +51,7 @@ def CalcCommanVelocity(odom_msg):
     curr_pos.theta = odom_msg.data[5]
     # if current position is not desired position -> move
     dist=math.sqrt((dest.x-curr_pos.x)^2 + (dest.x-curr_pos.x)^2)
-    if ( dist > 0.01 or math.abs(curr_pos.theta-dest.theta>0.01)):
+    if ( dist > 0.01 or math.abs(curr_pos.theta-dest.theta>2)):
         if (curr_pos.theta > dest.theta):
             vel.angular += (curr_pos.theta-dest.theta)*0.1
         if (dist>0.01):
