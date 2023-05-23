@@ -10,13 +10,31 @@
 5. [Telepítési útmutató](#otodikfejezet)
 6. [Használt ROS csomagok](#hatodikfejezet)
 
-mozgás, robot mi alapján megy asztalokhoz
+mozgás, robot mi alapján megy asztalokhoz??
+
 
 ## Környezet megalkotása <a name="elsofejezet"></a>
+A szimuláció környezetét Gazebo fizikai szimulációs környezet használatával építettük fel. A felszolgáló robot egy szimulált kávézóban viszi ki a vendégekhez a rendelésüket. Az "L" alakú alapterületű helységben ezért 8 db asztal is elhelyezésre került, amelyek között előre kijelölt útvonalakon képes közlekedni a robot.
+
+
+![image](https://github.com/ArminKaroly/Kog_Rob_HF/assets/62290156/87faf514-7485-459b-ba44-3918a837b195)
+
 
 ## Robot modellezése <a name="masodikfejezet"></a>
+A felszolgáló robot a ROS Turtlebot3 alapcsomagjával van szimulálva. Azonban mivel a felszolgáló robot fizikai méretei jelentősen nagyobbak kell legyenek mint a turtlebot burger vagy a waffle verziójánál, ezért egy saját fizikai modellt rendeltünk hozzá. 
+
+![image](https://github.com/ArminKaroly/Kog_Rob_HF/assets/62290156/852bdd51-29eb-4940-9fbd-8b405c9ffee3)
+
 
 ## Markerek <a name="harmadikfejezet"></a>
+A robot tájékozódása elsősorban nem a lidar adatai, vagy odometria alapján történik, hanem a virtuális kávézó plafonján elhelyezkedő markerek kamerás követésével. A markerek egy dinamikusan skálázható rács rácspontjaiban találhatóak, jelen esetben egy 10x10-es rácsot használunk, de a helység L alaperülete miatt nem 100 hanem csak 84 db marker látható.
+
+![image](https://github.com/ArminKaroly/Kog_Rob_HF/assets/62290156/91ad0a31-c4ef-4381-abb4-2c9224be0390)
+
+A használt jelölők ún. ArUco ( "Augmented Reality" and "University of Cordoba") markerek, amelyeket kifejezetten tracking és kiterjesztett valóság alkalmazásokra fejlesztettek ki. Egyetlen ArUco marker is elegendő hogy a kamera képe alapján visszaszámolható legyen a robot térbeli poz<ciója (x,y,z és orientációja (A,B,C) is egyaránt. Ehhez szükséges a kamera torzításaink kompenzálása a képeken, a markerek pontos helyzetének ismerete a térben egy referencia ponthoz képest, illetve a kamera és robot koordinátarendszere közötti transzformáció is adott kell legyen. Célszerűazonban , hogy ne csupán egyetlen, hanem több markert is lásson egy idejűleg a kamera, így korrigálhatóak a hibák és nől a helymeghatározás pontossága.
+
+![image](https://github.com/ArminKaroly/Kog_Rob_HF/assets/62290156/677a3b74-c12d-48dd-a2e9-cedb970d6d17)
+
 
 ## Trackelés működése <a name="negyedikfejezet"></a>
 ## Telepítési útmutató <a name="otodikfejezet"></a>
