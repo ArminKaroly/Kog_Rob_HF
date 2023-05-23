@@ -1,5 +1,5 @@
 # Kognitív Robotika Házi feladat
-### Felszolgáló robot pozíci korrigálása markerek trackelésével
+### Felszolgáló robot tájékozódása markerek trackelésével
 ![image](https://github.com/ArminKaroly/Kog_Rob_HF/assets/62290156/87faf514-7485-459b-ba44-3918a837b195)
 
 ## Tartalom
