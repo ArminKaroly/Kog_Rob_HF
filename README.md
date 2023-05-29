@@ -71,8 +71,8 @@ A kamera képének feldolgozása az OpenCV könyvtár Aruco alkönyvtárának ha
 A felhasználó által kijelölt asztal alapján kerül meghatározásra a célpozíció koordinátája, a robot aktuális helyzete pedig mindig ismert a markerek trackelésének köszönhetően. A kezdő és célpont közötti útvonalat a "TODO.py" scrip TODO függvénye generálja le. A pályqa az egyszerűség kedvéért egyenesekből és 90°-os fordulásokból épül fel. Ezután a robot a "TODO velocity_control" irányításával mozog végig az útvonal szakaszain, amely az aktuális X,Y koordináták és Z körüli szögelfordulás alapján szabályozzák a hajtott kerekek sebesség vektorait attól függe, hogy egyenes mentén haladásra vagy forgásra van szükség. TODO
     
 ## Felhasználói felület <a name="hatodikfejezet"></a>
-    Egy egyszerű terminal alapú felhasználói felületet is készítettünk, amely segítségével lehetséges a cél asztal kiválasztása. Illetve folyamatosan információt biztosít a robot aktuális állapotáról, minthogy szabad, vagy dolgozik, és pzíciójáról.
-    TODO
+Egy egyszerű terminal alapú felhasználói felületet is készítettünk, amely segítségével lehetséges a cél asztal kiválasztása. Illetve folyamatosan információt biztosít a robot aktuális állapotáról, minthogy szabad, vagy dolgozik, és pzíciójáról.
+TODO
     
 ## Telepítési útmutató <a name="hetedikfejezet"></a>
 
