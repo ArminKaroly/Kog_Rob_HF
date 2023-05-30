@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<robot name="my_awesome_model" xmlns:xacro="http://ros.org/wiki/xacro">
-  <gazebo>
-      <static>true</static>
-  </gazebo>
-</robot>
