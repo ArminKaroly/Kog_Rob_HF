@@ -92,8 +92,6 @@ class Velocity_manager():
             elif self.desired.angular.z != self.last_desired.angular.z:
                 self.movement = 'z'
            
-            #print(self.forward)    
-            #print(self.movement)
             # Mozgásviszonyhoz sebességek hozzárendelése
             if self.movement == 'x':
                 vel.linear.x = (self.desired.linear.x-self.current.linear.x)*self.linear_gain
@@ -105,8 +103,9 @@ class Velocity_manager():
                     if self.forward == False:
                         vel.angular.z = -vel.angular.z
                 else:
-                    vel.angular.z = (self.desired.angular.z-self.current.angular.z)*self.angular_gain*0.5
-                
+                    vel.angular.z = (self.desired.angular.z-self.current.angular.z)*self.angular_gain*0.8
+                if np.absolute((self.desired.angular.z-self.current.angular.z>0.2) or (np.absolute(sideways_error) > 0.10)):
+                    vel.linear.x = np.sign(vel.linear.x)*0.15
                         
             elif self.movement == 'y':
                 vel.linear.x = -(self.desired.linear.y-self.current.linear.y)*self.linear_gain
@@ -118,13 +117,15 @@ class Velocity_manager():
                     if self.forward == False:
                         vel.angular.z = -vel.angular.z
                 else:
-                    vel.angular.z = (self.desired.angular.z-self.current.angular.z)*self.angular_gain*0.5
-                
+                    vel.angular.z = (self.desired.angular.z-self.current.angular.z)*self.angular_gain*0.8
+                if np.absolute(self.desired.angular.z-self.current.angular.z>0.2) or (np.absolute(sideways_error) > 0.10):
+                    vel.linear.x = np.sign(vel.linear.x)*0.15
                     
             elif self.movement == 'z':
                 vel.linear.x = 0
                 vel.angular.z = (self.desired.angular.z-self.current.angular.z) * self.angular_gain 
-
+            
+            
             if np.absolute(vel.angular.z) > self.max_ang_vel:
                 vel.angular.z = np.sign(vel.angular.z) * self.max_ang_vel
         
@@ -145,7 +146,7 @@ class Velocity_manager():
 if __name__ == '__main__':  
     rospy.init_node('Velocities')
     # LIN_GAIN, ANG_GAIN LIN_ERR_GAIN MAX_LIN_VEL MAX_ANG_VEL
-    Vel = Velocity_manager(0.75,1,0.5,0.5,0.5)
+    Vel = Velocity_manager(0.75,1,0.7,0.5,0.5)
     rospy.Subscriber('/Wait',Bool, Vel.Wait)
     rospy.Subscriber('/Robot_act_pos',Twist, Vel.Current_pos_sub)
     rospy.Subscriber('/Robot_desired',Twist, Vel.Desired_pos_sub)

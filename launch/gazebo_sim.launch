@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="x_pos" default="0"/>
+  <arg name="x_pos" default="0.0"/>
   <arg name="y_pos" default="7.778174593"/>
-  <arg name="z_pos" default="0.0"/>
+  <arg name="z_pos" default="-0.0018"/>
+  <arg name="roll_pos" default="-0.000037"/>
   <arg name="yaw_pos" default="-0.7853982"/>
+  
  
   <!-- Launch file parameters -->
-  <arg name="paused"     default="true"/>
+  <arg name="paused"     default="false"/>
   <arg name="debug"      default="false"/>
   <arg name="gui"        default="true"/>
   <arg name="rate"       default="500" />
-  <arg name="world_name" default="$(find koghf)/worlds/gazebo_sim_bkup.world" /> <!--GECIRE NEM TUDOM MIT KÉNE IDE MEGADNI DE YEEEET-->
+  <arg name="world_name" default="$(find koghf)/worlds/gazebo_sim_rotated.world" /> <!--GECIRE NEM TUDOM MIT KÉNE IDE MEGADNI DE YEEEET-->
 
 
   <!-- Start up simulated world -->
@@ -26,7 +28,7 @@
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model my_awesome_model -Y $(arg yaw_pos) -param aruco_markers_description"/>
   
    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find koghf)/urdf/turtlebot3_burger.xacro" />
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model turtlebot3_burger -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -Y $(arg yaw_pos) -param robot_description" />
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model turtlebot3_burger -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -R $(arg roll_pos) -Y $(arg yaw_pos) -param robot_description" />
   
   <node name="Marker" pkg="koghf" type="Marker_manager.py" output="screen" respawn = "true" launch-prefix="xterm -e"/>
   

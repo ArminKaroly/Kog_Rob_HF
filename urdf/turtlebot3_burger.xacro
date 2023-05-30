@@ -28,9 +28,9 @@
 
     <inertial>
       <origin xyz="0 0 0.57" rpy="0 0 0"/>
-      <mass value="10"/>
-      <inertia ixx=" 1.266667 " ixy="0" ixz="0"
-               iyy=" 1.266667 " iyz="0"
+      <mass value="15"/>
+      <inertia ixx=" 1.296667 " ixy="0" ixz="0"
+               iyy=" 1.296667 " iyz="0"
                izz="0.3" />
     </inertial>
   </link>
@@ -38,7 +38,7 @@
   <joint name="wheel_left_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_left_link"/>
-    <origin xyz="0.12 0.23 0.165" rpy="-1.57 0 0"/>
+    <origin xyz="0.15 0.23 0.165" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -60,7 +60,7 @@
 
     <inertial>
       <origin xyz="0 0 0" />
-      <mass value="10.5498940" />
+      <mass value="2.5498940" />
       <inertia ixx="0.021321" ixy="0" ixz="0"
                iyy="0.021321" iyz="0"
                izz="0.038794 " />
@@ -70,7 +70,7 @@
   <joint name="wheel_right_joint" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_right_link"/>
-    <origin xyz="0.12 -0.23 0.165" rpy="-1.57 0 0"/>
+    <origin xyz="0.15 -0.23 0.165" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
@@ -92,7 +92,7 @@
 
     <inertial>
       <origin xyz="0 0 0" />
-      <mass value="10.5498940" />
+      <mass value="2.5498940" />
       <inertia ixx="0.021321" ixy="0" ixz="0"
                iyy="0.021321" iyz="0"
                izz="0.038794" />
@@ -110,14 +110,14 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 1.57"/>
       <geometry>
-       <cylinder length = "0.05" radius = "0.02" />
+        <sphere radius="0.02"/>
       </geometry>
     </visual>
     
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-       <cylinder length = "0.05" radius = "0.02" />
+      <sphere radius="0.02"/>
       </geometry>
     </collision>
 
