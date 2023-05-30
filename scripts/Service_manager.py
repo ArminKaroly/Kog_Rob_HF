@@ -5,9 +5,10 @@ import time
 import math
 import rospy
 import numpy as np
-import cv2, PIL, os
 from os import system, name
+from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist
+
     
 def clear():
     # for windows
@@ -23,9 +24,10 @@ class Service_manager():
         self.current = None
         self.orders = None
         self.path_index = 1
-        self.path_index_memory = 0
+        self.last_path_index = 0
         self.forward = True
         self.arrive_back = True
+        self.movement = None
         self.lin_error = lin_err
         self.ang_error = ang_err
         self.Actual_table_drawing = Act_tab_draw 
@@ -37,6 +39,7 @@ class Service_manager():
         print("Aktuálisan az asztalok állapota:")
         print(self.Actual_table_drawing)
         print("________________________________")
+
                 
     def Table_drawer(self,table_number):
             if table_number == 1 and self.Actual_table_drawing[8]==" ": 
@@ -104,55 +107,105 @@ class Service_manager():
         if self.arrive_back:
             print("Cafebot használható!")
             self.orders = None
+            pub_bool = rospy.Publisher('/Wait', Bool, queue_size=10)
+            rate = rospy.Rate(120)
+            my_msg = Bool()
+            my_msg.data = True
+            pub_bool.publish(my_msg)
             self.User_Interface()
         else:
             clear() 
             print("Cafebot használatban van!")
+            pub_bool = rospy.Publisher('/Wait', Bool, queue_size=10)
+            rate = rospy.Rate(120)
+            my_msg = Bool()
+            my_msg.data = False
+            pub_bool.publish(my_msg)
             self.Pub_desired_pos() 
              
             
     def Check_table(self):
         lin_dist = math.sqrt((Routes[5,0,self.orders]-self.current.linear.x)**2+(Routes[5,1,self.orders]-self.current.linear.y)**2)
         ang_dist = math.sqrt((Routes[5,2,self.orders]-self.current.angular.z)**2)
-        if lin_dist <= self.lin_error and ang_dist <= self.ang_error and self.path_index == 5:
+        if lin_dist <= self.lin_error and self.movement == 'l' and self.path_index == 5:
             print("Cafebot megérkezett az asztalhoz!")
-            time.sleep(7.5)
+            pub_bool = rospy.Publisher('/Wait', Bool, queue_size=10)
+            rate = rospy.Rate(120)
+            my_msg = Bool()
+            my_msg.data = True
+            pub_bool.publish(my_msg)
+            time.sleep(5)
+            my_msg.data = False
+            pub_bool.publish(my_msg)
+            
+        if ang_dist <= self.ang_error and self.movement == 'r' and self.path_index == 5:
+            print("Cafebot megérkezett az asztalhoz!")
+            pub_bool = rospy.Publisher('/Wait', Bool, queue_size=10)
+            rate = rospy.Rate(120)
+            my_msg = Bool()
+            my_msg.data = True
+            pub_bool.publish(my_msg)
+            time.sleep(5)
+            my_msg.data = False
+            pub_bool.publish(my_msg)
+            
             
     def Check_home(self):
         lin_dist = math.sqrt((Routes[0,0,0]-self.current.linear.x)**2+(Routes[0,1,0]-self.current.linear.y)**2)
         ang_dist = math.sqrt((Routes[0,2,0]-self.current.angular.z)**2)
-        if lin_dist <= self.lin_error and ang_dist <= self.ang_error and self.path_index == 0:
+        if lin_dist <= self.lin_error and self.movement == 'l' and self.path_index == 0:
+            self.arrive_back = True
+            clear()
+        if ang_dist <= self.ang_error and self.movement == 'r' and self.path_index == 0:
             self.arrive_back = True
             clear()
         
     def Check_forward(self):
         lin_dist = math.sqrt((Routes[self.path_index,0,self.orders]-self.current.linear.x)**2+(Routes[self.path_index,1,self.orders]-self.current.linear.y)**2)
         ang_dist = math.sqrt((Routes[self.path_index,2,self.orders]-self.current.angular.z)**2)
-        if lin_dist <= self.lin_error and ang_dist <= self.ang_error:
-            self.path_index = self.path_index +  1
+        if lin_dist <= self.lin_error and self.movement == 'l':
+            self.last_path_index = self.path_index
+            self.path_index = self.path_index + 1
+        elif ang_dist <= self.ang_error and self.movement == 'r':
+            self.last_path_index = self.path_index
+            self.path_index = self.path_index + 1
     
     def Check_backward(self):
         lin_dist = math.sqrt((Routes[self.path_index,0,self.orders]-self.current.linear.x)**2+(Routes[self.path_index,1,self.orders]-self.current.linear.y)**2)
         ang_dist = math.sqrt((Routes[self.path_index,2,self.orders]-self.current.angular.z)**2)
-        if lin_dist <= self.lin_error and ang_dist <= self.ang_error:
+        if lin_dist <= self.lin_error and self.movement == 'l':
+            self.last_path_index = self.path_index
+            self.path_index = self.path_index - 1
+        elif ang_dist <= self.ang_error and self.movement == 'r':
+            self.last_path_index = self.path_index
             self.path_index = self.path_index - 1
         
         
     def Pub_desired_pos(self):            
          if self.Current_pos is not None and self.orders is not None:
+             
              self.Check_home()
              self.Check_table()
+             
+             #print(self.movement)
+             #print(self.path_index)
+             #print(self.last_path_index)
              
              if self.path_index == 0:
                  self.forward = True
              if self.path_index == 5:
                  self.forward = False
-
+             
              if self.forward:
                  self.Check_forward()
              else:
-                 self.Check_backward()          
-
+                 self.Check_backward()
+                 
+             if Routes[self.last_path_index,2,self.orders] != Routes[self.path_index,2,self.orders]:
+                 self.movement = 'r'          
+             else:
+                 self.movement = 'l'
+                 
              pub = rospy.Publisher('/Robot_desired', Twist, queue_size=10)
              rate = rospy.Rate(120)
              my_msg0 = Twist()
@@ -171,15 +224,15 @@ class Service_manager():
 if __name__ == '__main__':
     Routes = np.zeros((6,3,8))
     for i in range(0,4):
-       Route =  np.array([[-5.5,5.5,-np.pi/2],[-3.5,5.5,-np.pi/2],[-3.5,5.5,-np.pi],[-3.5,-1.5+2*i,-np.pi],[-3.5,-1.5+2*i,-np.pi/2],[-2.5,-1.5+2*i,-np.pi/2]])
+       Route =  np.array([[-5.5,5.5,0],[-2.5,5.5,0],[-2.5,5.5,-np.pi/2],[-2.5,-1.5+2*i,-np.pi/2],[-2.5,-1.5+2*i,0],[-2,-1.5+2*i,0]])
        Routes[:,:,i] = Route 
     for i in range(0,4):  
-        Route = np.array([[-5.5,5.5,-np.pi/2],[3.5,5.5,-np.pi/2],[3.5,5.5,-np.pi],[3.5,-1.5+2*i,-np.pi],[3.5,-1.5+2*i,np.pi/2],[2.5,-1.5+2*i,np.pi/2]])  
+        Route = np.array([[-5.5,5.5,0],[1.5,5.5,0],[1.5,5.5,-np.pi/2],[1.5,-1.5+2*i,-np.pi/2],[1.5,-1.5+2*i,0],[2,-1.5+2*i,0]])
         Routes[:,:,i+4] = Route
     Actual_table_drawing = "  [ ]  [ ]  \n  [ ]  [ ]  \n  [ ]  [ ]  \n  [ ]  [ ]\n              *\n"     
     
     rospy.init_node('Service')
-    Ser = Service_manager(0.5,0.5,Actual_table_drawing)    
+    Ser = Service_manager(0.1,0.015,Actual_table_drawing)    
     rospy.Subscriber('/Robot_act_pos', Twist, Ser.Current_pos)
     rospy.spin()
     

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import time
 import math
 import rospy
 import numpy as np
@@ -11,10 +10,8 @@ from os import system, name
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
-from matplotlib import pyplot as plt
-from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import CameraInfo
-
+from scipy.spatial.transform import Rotation as R
 
 def clear():
     # for windows
@@ -31,13 +28,12 @@ class Markers:
     def markers_build(self):
         for y in range(9):
             for x in range(9):
-                self.markers.append([-4+x,-2+y,2.5,-math.sqrt(2)/2,math.sqrt(2)/2,0,0])
-        
-        self.markers.append([-5,5,2.5,-math.sqrt(2)/2,math.sqrt(2)/2,0,0])
-        self.markers.append([-6,5,2.5,-math.sqrt(2)/2,math.sqrt(2)/2,0,0])
-        self.markers.append([-5,6,2.5,-math.sqrt(2)/2,math.sqrt(2)/2,0,0])
-        self.markers.append([-6,6,2.5,-math.sqrt(2)/2,math.sqrt(2)/2,0,0])
+                self.markers.append([-4+x,-2+y,2.5,0.7071068,-0.7071068,0,0])
     
+        self.markers.append([-5,5,2.5,0.7071068,-0.7071068,0,0])
+        self.markers.append([-6,5,2.5,0.7071068,-0.7071068,0,0])
+        self.markers.append([-5,6,2.5,0.7071068,-0.7071068,0,0])
+        self.markers.append([-6,6,2.5,0.7071068,-0.7071068,0,0])
     def markers_array(self):
         self.markers_build()
         return self.markers
@@ -96,30 +92,63 @@ class Locate_robot:
         
     # a képből megkapott értékek alapján hol vagyunk a robottal (x,y) szerinti elforgatást semminek vesszük mert a robot nem fog eldőlni, a kamerája pedig tökéletesen felfele fog nézni        
     def Calculate_robot_pos(self): # QR code-ok alapján számol pozíciót a robotra azt publish-eli
+         euls = []
+         filtered_euls=[]
+         #print(self.ids)
          if self.rvecs is not None and self.tvecs is not None and self.ids is not None: # ha nincs érték nin értelme számolni
              clear()
-             Rob_tvecs = np.array([0,0,0])  # ez lesz majd a robot helyzete
-             Rob_rvecs = np.array([0,0,0])
-                         
+             Rob_tvecs = np.array([0.0,0.0,0.0])  # ez lesz majd a robot helyzete
+             Rob_rvecs = np.array([0.0,0.0,0.0])           
              for i in range(len(self.tvecs)):  # végigmegyünk a képből kiszedett pontokon, ezt használva létrehozunk hom koord-okat
                  T = np.append(self.rodrigues_vec_to_rotation_mat(self.rvecs[i,0,:]),np.reshape(self.tvecs[i,0,:],(3,1)),axis = 1)
+                 
                  T = np.append(T,np.array([[0,0,0,1]]),axis = 0)                 
-                                                  
+                                                                        
                  T_point = np.append(R.from_quat(markers[self.ids[i].item()][3:7]).as_matrix(),np.reshape(markers[self.ids[i].item()][0:3],(3,1)),axis = 1)
                  
                  T_point = np.append(T_point,np.array([[0,0,0,1]]),axis = 0)
                  
-                 # számolunk egy inverzet
-                 T_rob = np.matmul(T_point,np.linalg.inv(T)) # origó->qrcode->robot   innen a robot helyzete megvan, ezt mentjük, és majd publisheljük
                  
+                 
+                 
+                 T_cam = np.matmul(T_point,np.linalg.inv(T)) # origó->qrcode->robot   innen a robot helyzete megvan, ezt mentjük, és majd publisheljük 
+                 #print(T_point)
+                 #print(np.linalg.inv(T))
+                 #print(T_cam)
+                 
+                 T_cam_rob = np.array([[0,-1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,1]])
+                 
+                 T_rob = np.matmul(T_cam,T_cam_rob)
+                                  
                  Eul_rob = R.from_matrix(T_rob[0:3,0:3]).as_euler('xyz',degrees = False)
                  
+                 #print(T_rob)
+                 
+                 #print(Eul_rob)
+                 #print("\n")                 
+                 
                  Rob_tvecs = Rob_tvecs + np.array([T_rob[0,3],T_rob[1,3],0]) # xy síkban mozgunk a Zben nem tehát 0
-                 Rob_rvecs = Rob_rvecs + np.array([0,0,Eul_rob[2]]) # xy síkban mozgunk ezért csak z-ben tud forogni
+                 euls = np.append(euls,Eul_rob[2])
+                 
+             #print(self.ids)
+             euls_mean = np.mean(euls)
+             euls_std = np.std(euls,dtype=np.float64)
+             #print(euls_mean)
+             #print(euls_std)
+             filtered_num = 0
+             for i in range(0,len(euls)):
+                 if np.absolute(euls[i]-euls_mean) < euls_std:
+                     #print(euls[i])
+                     filtered_num = filtered_num + 1
+                     #print(filtered_num)
+                     Rob_rvecs[2] = Rob_rvecs[2] + euls[i]
              
              Rob_tvecs = Rob_tvecs/len(self.tvecs)
-             Rob_rvecs = Rob_rvecs/len(self.rvecs)
              
+             if filtered_num == 0:
+                 Rob_rvecs[2] = euls_mean
+             else:
+                 Rob_rvecs = Rob_rvecs/filtered_num
              # átlagolt értékek publish-olása topicba
            
              pub = rospy.Publisher('/Robot_act_pos', Twist, queue_size=10)
@@ -143,8 +172,8 @@ if __name__ == '__main__':
     ar_dict = aruco.Dictionary_get(aruco.DICT_4X4_100)
     ar_param = aruco.DetectorParameters_create()
     marker=Markers()
-    markers = marker.markers_array()  
-    rospy.init_node('QR')
+    markers = marker.markers_array() 
+    rospy.init_node('Marker')
     Robot = Locate_robot(ar_dict,ar_param)
     rospy.Subscriber('/camera/image', Image, Robot.image_callback)
     
