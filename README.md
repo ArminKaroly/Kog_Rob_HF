@@ -3,6 +3,7 @@
 
 Projektfeladatunk során egy kávézóban működő felszolgáló robotot szimuláltunk le, amely a plafonra helyezett ArUco markerek kamerás trackelésével határozza meg a saját helyzetét.
 A robot a kezdő pozícióbpól (pulttól) indulva egy előre meghatározott útvonalon képes bármelyik asztalhoz kivinni a rendelést, a felhasználó utasítása szerint.
+A működés bemutatására készült egy rövid videó is. https://www.youtube.com/watch?v=NYHsfWoEsYA
 
 <p align="center">
     <img src="https://github.com/ArminKaroly/Kog_Rob_HF/assets/62290156/f2d3371b-8f5e-4245-813c-51998d0a91f2">
